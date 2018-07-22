@@ -3,7 +3,7 @@
 from turtle import *
 from Tkinter import *
 from math import *
-
+from random import *
 
 def setPenColor(depth):
     if (depth < 3):
@@ -95,11 +95,11 @@ def sierpinski(base, x, y):
     # if we need to draw more, set up the coords and len
     if (depth < reqDepth):
         # coords for triagle A
-        pAx = x - base/4
+        pAx = x - base/4.0
         pAy = y
 
         # coords for triagle B
-        pBx = x + base/4
+        pBx = x + base/4.0
         pBy = y
 
         # coords for triagle C
@@ -107,11 +107,11 @@ def sierpinski(base, x, y):
         pCy = (sqrt(3)/2 * base)/2 + y
         
         pencolor("white")
-        sierpinski(base/2, pAx, pAy)
+        sierpinski(base/2.0, pAx, pAy)
         pencolor("cyan")
-        sierpinski(base/2, pBx, pBy)
+        sierpinski(base/2.0, pBx, pBy)
         pencolor("red")
-        sierpinski(base/2, pCx, pCy)
+        sierpinski(base/2.0, pCx, pCy)
     depth -= 1
 
 
@@ -119,6 +119,8 @@ def showSierp():
     global draw
     global depth
     global reqDepth
+    
+    
     depth = 0
     reqDepth = int(e5.get())
     base = int(e4.get())
@@ -128,11 +130,87 @@ def showSierp():
         tracer(1, 10)
     bgcolor("black")
     pencolor("white")
-    sierpinski(base, 250, 0)
+    sierpinski(base, 250.0, 0.0)
     speed(0)
     update()
     done()
-    
+
+
+def showChaosSierp():
+    """ Plot three points as the vertices of a triangle
+    Pa Pb and Pc. Pick a random point P0 (for sake or 
+    argument somewhere in the middle though it need not 
+    be). Now randomly pick a, b, or, c. Plot P1 to be 
+    halfway between P0 and the point you picked. Continue 
+    such that P(t+1) is always halfway between P(t) and 
+    a random selection of a, b, and c. While this would 
+    seem to be just general random chaos it produces the 
+    Sierpinski triangl."""
+    if not draw.get():
+        tracer(0,0)
+    else:
+        tracer(1, 10)
+    base = float(e4.get())
+    dots = int(e6.get())
+    offset = 250
+    height =  (sqrt(3)/2 * base)
+
+    # Plot three points 
+    pAx = offset - (base/2)
+    pAy = 0
+    pBx = offset + (base/2)
+    pBy = 0
+    pCx = offset
+    pCy = height
+
+    # draw tri starting at point A
+    penup()
+    setpos(pAx,pAy)
+    pendown()
+
+    bgcolor("black")
+    pencolor("white")
+
+    goto(pBx, pBy)
+    goto(pCx, pCy)
+    goto(pAx, pAy)
+
+    # Pick P0
+#    pX, pY = getNextPoint(height, base, offset)
+    pX = uniform(0,5 * base)
+    pY = uniform(0,5 * base)
+    penup()
+    setpos(pX,pY)
+#    pendown()
+
+    for i in xrange(dots):
+        # Pick corner
+        corner = randint(1,3)
+        if (corner == 1):
+            pencolor("red")
+            pX = (pX - pAx)/2 + pAx
+            pY = pY/2
+        elif (corner == 2):
+            pencolor("white")
+            pX = pBx - (pBx - pX)/2
+            pY = pY/2
+        elif (corner == 3):
+            pencolor("cyan")
+            pY = pCy - (pCy - pY)/2
+            if (pX > offset):
+                pX = (pX - offset)/2 + offset
+            elif (pX < offset):
+                pX =  offset - (offset - pX)/2
+                # if pX is == to offset, moving straight up 
+                # will be halfway closer
+        else:
+            print "Bad corner case"
+        goto(pX, pY)
+        dot(1)
+
+    speed(0)
+    update()
+    done()
 
 def clearTurtle():
     reset()
@@ -151,30 +229,35 @@ if __name__ == "__main__":
     Label(master, text="Branch Length Ratio").grid(row=1)
     Label(master, text="Branch angle").grid(row=2)
     Label(master, text="Sierpinski Base len").grid(row=4)
-    Label(master, text="Sierpinski depth").grid(row=5)
+    Label(master, text="recursive depth").grid(row=6, column=1)
+    Label(master, text="dots(resolution)").grid(row=7, column=1)
 
     e1 = Entry(master)
     e2 = Entry(master)
     e3 = Entry(master)
     e4 = Entry(master)
     e5 = Entry(master)
+    e6 = Entry(master)
 
     e1.insert(10,100)
     e2.insert(10,.66)
     e3.insert(10,45)
     e4.insert(10,300)
     e5.insert(10,3)
+    e6.insert(10,10000)
     
     e1.grid(row=0, column=1)
     e2.grid(row=1, column=1)
     e3.grid(row=2, column=1)
     e4.grid(row=4, column=1)
-    e5.grid(row=5, column=1)
+    e5.grid(row=6, column=2)
+    e6.grid(row=7, column=2)
 
     Button(master, text='Clear', command=clearTurtle).grid(row=3, column=2, sticky=W, pady=4)
     Button(master, text='Tree', command=showTree).grid(row=3, column=0, sticky=W, pady=4)
-    Button(master, text='Sierp', command=showSierp).grid(row=6, column=0, sticky=W, pady=4)
-    Checkbutton(master, text="Draw", variable=draw).grid(row=6, column=1, sticky=W) 
+    Button(master, text='Recursive Sierpinski', command=showSierp).grid(row=6, column=0, sticky=W, pady=4)
+    Button(master, text='Chaos Sierpinski', command=showChaosSierp).grid(row=7, column=0, sticky=W, pady=4)
+    Checkbutton(master, text="Draw", variable=draw).grid(row=8, column=0, sticky=W) 
   
 
     mainloop( )    
